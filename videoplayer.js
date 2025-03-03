@@ -249,7 +249,10 @@ class videoplayerElement extends HTMLElement {
             this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
             const percent = this.video.currentTime / this.video.duration;
             this.timelineContainer.style.setProperty("--progress-position", percent);
-            this.updateMeasureForm();
+
+            if (this.measuresData) {
+                this.updateMeasureForm();
+            }
         });
 
         this.video.addEventListener("loadedmetadata", () => { // when metadata is loaded we can access the time data
