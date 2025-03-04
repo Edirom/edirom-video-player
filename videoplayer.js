@@ -506,6 +506,9 @@ class videoplayerElement extends HTMLElement {
             const aspectRatio = this.video.videoWidth / this.video.videoHeight;
             var maxWidth = this.width;
             var maxHeight = this.height - this.playerControlsContainer.clientHeight;
+            if (maxHeight <= 0) {
+                maxHeight = 10;
+            }
 
             if (maxWidth / aspectRatio < maxHeight) {
                 var newWidth = maxWidth;
