@@ -5,8 +5,19 @@ const template = document.createElement("template");
 template.innerHTML = `
     <div>
         <style>
+            #video-container {
+                position: relative;
+            }
             video {
-                display: none;
+                width: 100%;
+                height: 100%;
+            }
+
+            #video-canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-color: transparent;
             }
 
             #player-container {
@@ -162,8 +173,10 @@ template.innerHTML = `
             }
         </style>
         <div id="player-container">
-            <video></video>
-            <canvas id="video-canvas" width="640" height="480"></canvas>
+            <div id="video-container">
+                <video></video>
+                <canvas id="video-canvas" width="640" height="480"></canvas>
+            </div>
             <div id="player-controls-container">
                 <div id="timelines">
                     <div id="main-timeline-container" class="timeline-container">
@@ -385,7 +398,7 @@ class videoplayerElement extends HTMLElement {
 
     // Gets exectuted when the element is added to the DOM
     connectedCallback() {
-        setInterval(this.drawScreen, 33); // The 33 is still hard coded!
+        // setInterval(this.drawScreen, 33); // The 33 is still hard coded!
         this.adjustVolumeIcon();
         this.adjustVolumeSlider();
     }
@@ -520,6 +533,10 @@ class videoplayerElement extends HTMLElement {
             }
             this.canvas.width = newWidth;
             this.canvas.height = newHeight;
+            this.video.width = newWidth;
+            this.video.height = newHeight;
+            this.video.style.width = newWidth + "px";
+            this.video.style.height = newHeight + "px";
         }
         else {
             return;
