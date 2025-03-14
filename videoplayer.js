@@ -80,14 +80,17 @@ template.innerHTML = `
                 background-color: #1c274c;
             }
 
-            .timeline .position-indicator-arrow {
+            .timeline .position-indicator {
+                position: absolute;
                 z-index: 100;
                 --scale: 1;
-                position: absolute;
+                display: inline-block;
+                height: 300%;
+                top: -100%;
+            }
+
+            .timeline .position-indicator-arrow {
                 transform: translateX(-50%) scale(var(--scale));
-                top: -101%;
-                left: calc(var(--progress-position) * 100%);
-                /* transition: transform 150ms ease-in-out; */
                 width: 0; 
                 height: 0; 
                 border-left: 10px solid transparent;
@@ -96,17 +99,46 @@ template.innerHTML = `
             }
 
             .timeline .position-indicator-line {
-                z-index: 100;
-                --scale: 1;
                 position: absolute;
                 transform: translateX(-50%) scale(var(--scale));
-                height: 200%;
-                top: -50%;
-                left: calc(var(--progress-position) * 100%);
+                top: 0;
+                height: 100%;
                 background-color: red;
                 transition: transform 150ms ease-in-out;
                 width: 2px;
             }
+
+            #current-playback-position-indicator {
+                left: calc(var(--progress-position) * 100%);
+            }
+
+            #loop-beginning-position-indicator {
+                left: calc(var(--loop-beginning-position) * 100%);
+            }
+
+            #loop-ending-position-indicator {
+                left: calc(var(--loop-ending-position) * 100%);
+            }
+
+            #loop-beginning-position-indicator .position-indicator-arrow {
+                transform: translateX(-100%) scale(var(--scale));
+                border-right: 0;
+                border-top: 8px solid #f3bc01;
+            }
+
+            #loop-ending-position-indicator .position-indicator-arrow {
+                transform: translateX(0%) scale(var(--scale));
+                border-left: 0;
+                border-top: 8px solid #f3bc01;
+            }
+
+            #loop-beginning-position-indicator .position-indicator-line,
+            #loop-ending-position-indicator .position-indicator-line{
+                background-color: #f3bc01;
+                width: 2px;
+            }
+
+
 
             #player-controls-container #controls {
                 display: flex;
@@ -181,8 +213,18 @@ template.innerHTML = `
                 <div id="timelines">
                     <div id="main-timeline-container" class="timeline-container">
                         <div id="main-timeline" class="timeline">
-                            <div class="position-indicator-arrow"></div>
-                            <div class="position-indicator-line"></div>
+                            <div id="current-playback-position-indicator" class="position-indicator">
+                                <div class="position-indicator-arrow"></div>
+                                <div class="position-indicator-line"></div>
+                            </div>
+                            <div id="loop-beginning-position-indicator" class="position-indicator">
+                                <div class="position-indicator-arrow"></div>
+                                <div class="position-indicator-line"></div>
+                            </div>
+                            <div id="loop-ending-position-indicator" class="position-indicator">
+                                <div class="position-indicator-arrow"></div>
+                                <div class="position-indicator-line"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -262,6 +304,8 @@ class videoplayerElement extends HTMLElement {
             this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
             const percent = this.video.currentTime / this.video.duration;
             this.timelineContainer.style.setProperty("--progress-position", percent);
+            this.timelineContainer.style.setProperty("--loop-beginning-position", percent - 0.1);
+            this.timelineContainer.style.setProperty("--loop-ending-position", percent + 0.1);
 
             if (this.measuresData) {
                 this.updateMeasureForm();
