@@ -339,7 +339,7 @@ class videoplayerElement extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["src-data", "src-endpoint", "target-time", "state", "maxsize", "measures-data", "measures-endpoint", "target-measure"];
+        return ["height", "width", "src-data", "src-endpoint", "target-time", "state", "measures-data", "measures-endpoint", "target-measure"];
     }
 
     // Ist dann mit this.testattr abrufbar
@@ -364,12 +364,20 @@ class videoplayerElement extends HTMLElement {
         this.setAttribute("state", value);
     }
 
-    set maxsize(value) {
-        this.setAttribute("maxsize", value);
+    set width(value) {
+        this.setAttribute("width", value);
     }
 
-    get maxsize() {
-        return this.getAttribute("maxsize");
+    get width() {
+        return this.getAttribute("width");
+    }
+
+    set height(value) {
+        this.setAttribute("height", value);
+    }
+
+    get height() {
+        return this.getAttribute("height");
     }
 
     // Gets exectuted when the element is added to the DOM
@@ -428,7 +436,7 @@ class videoplayerElement extends HTMLElement {
                 this.video.pause();
             }
         }
-        else if (name == "maxsize") {
+        else if (name == "width" || name == "height") {
             this.adjustPlayerSize();
         }
     }
@@ -493,8 +501,8 @@ class videoplayerElement extends HTMLElement {
     adjustPlayerSize = () => {
         if (this.video.videoWidth && this.video.videoHeight) { // check if metadata is loaded yet
             const aspectRatio = this.video.videoWidth / this.video.videoHeight;
-            var maxWidth = this.maxsize.split("x")[0];
-            var maxHeight = this.maxsize.split("x")[1] - this.playerControlsContainer.clientHeight;
+            var maxWidth = this.width;
+            var maxHeight = this.height - this.playerControlsContainer.clientHeight;
 
             if (maxWidth / aspectRatio < maxHeight) {
                 var newWidth = maxWidth;
