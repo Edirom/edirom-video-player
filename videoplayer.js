@@ -5,6 +5,10 @@ const template = document.createElement("template");
 template.innerHTML = `
     <div>
         <style>
+            .display-none {
+                display: none !important;
+            }
+
             #video-container {
                 position: relative;
             }
@@ -110,6 +114,7 @@ template.innerHTML = `
 
             #current-playback-position-indicator {
                 left: calc(var(--progress-position) * 100%);
+                z-index: 101;
             }
 
             #loop-beginning-position-indicator {
@@ -217,11 +222,11 @@ template.innerHTML = `
                                 <div class="position-indicator-arrow"></div>
                                 <div class="position-indicator-line"></div>
                             </div>
-                            <div id="loop-beginning-position-indicator" class="position-indicator">
+                            <div id="loop-beginning-position-indicator" class="position-indicator display-none">
                                 <div class="position-indicator-arrow"></div>
                                 <div class="position-indicator-line"></div>
                             </div>
-                            <div id="loop-ending-position-indicator" class="position-indicator">
+                            <div id="loop-ending-position-indicator" class="position-indicator display-none">
                                 <div class="position-indicator-arrow"></div>
                                 <div class="position-indicator-line"></div>
                             </div>
@@ -280,6 +285,9 @@ class videoplayerElement extends HTMLElement {
         this.leadingZeroFormatter = new Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 });
         this.isScrubbing = false;
         this.volumeBeforeMute = 0.5;
+        this.loop = false;
+        this.loopBeginningTime = null;
+        this.loopEndingTime = null;
 
         this.canvas.addEventListener("click", () => {
             if (this.state == "play") {
@@ -304,17 +312,25 @@ class videoplayerElement extends HTMLElement {
             this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
             const percent = this.video.currentTime / this.video.duration;
             this.timelineContainer.style.setProperty("--progress-position", percent);
-            this.timelineContainer.style.setProperty("--loop-beginning-position", percent - 0.1);
-            this.timelineContainer.style.setProperty("--loop-ending-position", percent + 0.1);
 
             if (this.measuresData) {
                 this.updateMeasureForm();
+            }
+
+            if (this.loop) {
+                if (this.video.currentTime >= this.loopEndingTime) {
+                    this.video.currentTime = this.loopBeginningTime;
+                }
+                else if (this.video.currentTime < this.loopBeginningTime) {
+                    this.video.currentTime = this.loopBeginningTime;
+                }
             }
         });
 
         this.video.addEventListener("loadedmetadata", () => { // when metadata is loaded we can access the time data
             this.totalTimeElem.textContent = this.secondsToHhmmss(this.video.duration);
             this.adjustPlayerSize();
+            this.adjustLoop();
         });
 
 
@@ -399,7 +415,7 @@ class videoplayerElement extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["height", "width", "src-data", "src-endpoint", "target-time", "state", "measures-data", "measures-endpoint", "target-measure"];
+        return ["height", "width", "src-data", "src-endpoint", "target-time", "state", "measures-data", "measures-endpoint", "target-measure", "loop-beginning-time", "loop-ending-time"];
     }
 
     // Ist dann mit this.testattr abrufbar
@@ -439,6 +455,22 @@ class videoplayerElement extends HTMLElement {
     get height() {
         return this.getAttribute("height");
     }
+
+    // set loopBeginningTime(value) {
+    //     this.setAttribute("loop-beginning-time", value);
+    // }
+
+    // get loopBeginningTime() {
+    //     return this.getAttribute("loop-beginning-time");
+    // }
+
+    // set loopEndingTime(value) {
+    //     this.setAttribute("loop-ending-time", value);
+    // }
+
+    // get loopEndingTime() {
+    //     return this.getAttribute("loop-ending-time");
+    // }
 
     // Gets exectuted when the element is added to the DOM
     connectedCallback() {
@@ -498,6 +530,15 @@ class videoplayerElement extends HTMLElement {
         }
         else if (name == "width" || name == "height") {
             this.adjustPlayerSize();
+        }
+
+        else if (name == "loop-beginning-time") {
+            this.loopBeginningTime = newValue;
+            this.adjustLoop();
+        }
+        else if (name == "loop-ending-time") {
+            this.loopEndingTime = newValue;
+            this.adjustLoop();
         }
     }
 
@@ -662,6 +703,37 @@ class videoplayerElement extends HTMLElement {
             volumeLevel = "low";
         }
         this.volumeContainer.dataset.volumeLevel = volumeLevel;
+    }
+
+    adjustLoop = () => {
+        console.log("adjusting loop ###########################");
+        console.log("BeginningTime:", this.loopBeginningTime);
+        console.log("EndingTime:", this.loopEndingTime);
+        // Hier dann: Wenn z.B. Beginning nicht existiert, dann wird es auf 0 gesetzt. Wenn Ending nicht existiert, dann wird es auf das Ende des Videos gesetzt.
+        // Sollte ich hier auch schon verhidnern, dass Beginning > Ending ist? Das ist gar nicht so trivial, wenn ich nämlich beide Werte ändere, wird diese Funktion zweimal aufgerufen und das kann dann falsch sein, weil die Werte ja nicht gleichzeitig geändert werden.
+        const loopBeginningIndicator = this.shadow.querySelector("#loop-beginning-position-indicator");
+        const loopEndingIndicator = this.shadow.querySelector("#loop-ending-position-indicator");
+        if (!Number(this.loopBeginningTime) && !Number(this.loopEndingTime)) {
+            // deactivate looping
+            this.loop = false;
+            loopBeginningIndicator.classList.add("display-none");
+            loopEndingIndicator.classList.add("display-none");
+        }
+        else {
+            // activate looping
+            this.loop = true;
+            if (!Number(this.loopBeginningTime)) {
+                this.loopBeginningTime = 0;
+            }
+            else if (!Number(this.loopEndingTime)) {
+                this.loopEndingTime = this.video.duration;
+            }
+            loopBeginningIndicator.classList.remove("display-none");
+            loopEndingIndicator.classList.remove("display-none");
+            loopBeginningIndicator.style.setProperty("--loop-beginning-position", this.loopBeginningTime / this.video.duration);
+            loopEndingIndicator.style.setProperty("--loop-ending-position", this.loopEndingTime / this.video.duration);
+        }
+
     }
 }
 
