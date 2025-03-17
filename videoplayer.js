@@ -114,15 +114,16 @@ template.innerHTML = `
 
             #current-playback-position-indicator {
                 left: calc(var(--progress-position) * 100%);
-                z-index: 101;
             }
 
             #loop-beginning-position-indicator {
                 left: calc(var(--loop-beginning-position) * 100%);
+                z-index: 101;
             }
 
             #loop-ending-position-indicator {
                 left: calc(var(--loop-ending-position) * 100%);
+                z-index: 101;
             }
 
             #loop-beginning-position-indicator .position-indicator-arrow {
