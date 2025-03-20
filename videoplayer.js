@@ -289,6 +289,8 @@ class videoplayerElement extends HTMLElement {
         this.loop = false;
         this.loopBeginningTime = null;
         this.loopEndingTime = null;
+        this.intervalId = null;
+        this.isIntervalRunning = false;
 
         this.canvas.addEventListener("click", () => {
             if (this.state == "play") {
@@ -309,32 +311,13 @@ class videoplayerElement extends HTMLElement {
         });
 
 
-        this.video.addEventListener("timeupdate", () => {
-            this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
-            const percent = this.video.currentTime / this.video.duration;
-            this.timelineContainer.style.setProperty("--progress-position", percent);
-
-            if (this.measuresData) {
-                this.updateMeasureForm();
-            }
-
-            if (this.loop) {
-                if (this.video.currentTime >= this.loopEndingTime) {
-                    this.video.currentTime = this.loopBeginningTime;
-                }
-                else if (this.video.currentTime < this.loopBeginningTime) {
-                    this.video.currentTime = this.loopBeginningTime;
-                }
-            }
-        });
-
         this.video.addEventListener("loadedmetadata", () => { // when metadata is loaded we can access the time data
             this.totalTimeElem.textContent = this.secondsToHhmmss(this.video.duration);
             this.adjustPlayerSize();
             this.adjustLoop();
+            this.checkForLoopRestrictions();
+            this.updateUi();
         });
-
-
 
         this.timelineContainer.addEventListener("mousemove", this.handleTimelineUpdate);
 
@@ -411,6 +394,11 @@ class videoplayerElement extends HTMLElement {
             if (this.state == "play") {
                 this.state = "pause";
             }
+            this.stopInterval();
+        });
+        this.video.addEventListener("play", () => {
+            console.log("playing");
+            this.startInterval(30);
         });
 
     }
@@ -475,7 +463,7 @@ class videoplayerElement extends HTMLElement {
 
     // Gets exectuted when the element is added to the DOM
     connectedCallback() {
-        // setInterval(this.drawScreen, 33); // The 33 is still hard coded!
+        requestAnimationFrame(this.animationLoop);
         this.adjustVolumeIcon();
         this.adjustVolumeSlider();
     }
@@ -543,8 +531,53 @@ class videoplayerElement extends HTMLElement {
         }
     }
 
-    drawScreen = () => {
-        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+    checkForLoopRestrictions = () => {
+        if (this.loop) {
+            if (this.video.currentTime >= this.loopEndingTime) {
+                this.video.currentTime = this.loopBeginningTime;
+            }
+            else if (this.video.currentTime < this.loopBeginningTime) {
+                this.video.currentTime = this.loopBeginningTime;
+            }
+        }
+    }
+
+    startInterval = (delay) => {
+        console.log("starting interval");
+        if (!this.isIntervalRunning) {
+            this.intervalId = setInterval(this.intervalFunction, delay);
+            this.isIntervalRunning = true;
+        }
+    }
+
+    stopInterval = () => {
+        console.log("stopping interval");
+        clearInterval(this.intervalId);
+        this.isIntervalRunning = false;
+    }
+
+    intervalFunction = () => {
+        this.checkForLoopRestrictions();
+    }
+
+    animationLoop = () => {
+        this.updateUi();
+        requestAnimationFrame(this.animationLoop);
+    }
+
+    updateUi = () => {
+        this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
+        const percent = this.video.currentTime / this.video.duration;
+        this.timelineContainer.style.setProperty("--progress-position", percent);
+        if (this.measuresData) {
+            this.updateMeasureForm();
+        }
+        // this.drawCanvas();
+    }
+
+    drawCanvas = () => {
+        // Hier dann mal für Annotationen auf Video.
+        return;
     }
 
     secondsToHhmmss = (time) => {
