@@ -117,12 +117,12 @@ template.innerHTML = `
             }
 
             #loop-beginning-position-indicator {
-                left: calc(var(--loop-beginning-position) * 100%);
+                left: calc(var(--loop-beginning-position) * 100% - 2px);
                 z-index: 101;
             }
 
             #loop-ending-position-indicator {
-                left: calc(var(--loop-ending-position) * 100%);
+                left: calc(var(--loop-ending-position) * 100% + 2px);
                 z-index: 101;
             }
 
@@ -593,7 +593,6 @@ class videoplayerElement extends HTMLElement {
     }
 
     hhmmssToSeconds = (time) => {
-        // Still ignores milliseconds!!!
         const parts = time.split(":");
         const regex = /^(?!.*::)(?!.*:$)(?!^:)[0-9:.]*$/;
         if (!regex.test(time) || parts.length > 3 || time.length == 0) {
