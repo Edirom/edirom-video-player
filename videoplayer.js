@@ -175,6 +175,13 @@ template.innerHTML = `
                 text-align: center;
             }
 
+            #measure-container {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                margin-left: 20px;
+            }
+
             #volume-high-icon,
             #volume-low-icon,
             #volume-muted-icon {
@@ -258,7 +265,10 @@ template.innerHTML = `
                         /
                         <div class="total-time"></div>
                     </div>
-                    <input type="text" id="current-measure" value="0" size="2"></input>
+                    <div id="measure-container">
+                        <div>Takt</div>
+                        <input type="text" id="current-measure" value="0" size="2"></input>
+                    </div>
                 </div>
             </div>
         </div>
