@@ -287,8 +287,8 @@ class videoplayerElement extends HTMLElement {
         this.isScrubbing = false;
         this.volumeBeforeMute = 0.5;
         this.loop = false;
-        this.loopBeginningTime = null;
-        this.loopEndingTime = null;
+        this.loopBeginningTimeSeconds = null;
+        this.loopEndingTimeSeconds = null;
         this.intervalId = null;
         this.isIntervalRunning = false;
 
@@ -404,7 +404,7 @@ class videoplayerElement extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["height", "width", "src-data", "src-endpoint", "target-time", "state", "measures-data", "measures-endpoint", "target-measure", "loop-beginning-time", "loop-ending-time"];
+        return ["height", "width", "src-data", "src-endpoint", "target-time-ms", "state", "measures-data", "measures-endpoint", "target-measure", "loop-beginning-time-ms", "loop-ending-time-ms"];
     }
 
     // Ist dann mit this.testattr abrufbar
@@ -445,19 +445,19 @@ class videoplayerElement extends HTMLElement {
         return this.getAttribute("height");
     }
 
-    // set loopBeginningTime(value) {
+    // set loopBeginningTimeSeconds(value) {
     //     this.setAttribute("loop-beginning-time", value);
     // }
 
-    // get loopBeginningTime() {
+    // get loopBeginningTimeSeconds() {
     //     return this.getAttribute("loop-beginning-time");
     // }
 
-    // set loopEndingTime(value) {
+    // set loopEndingTimeSeconds(value) {
     //     this.setAttribute("loop-ending-time", value);
     // }
 
-    // get loopEndingTime() {
+    // get loopEndingTimeSeconds() {
     //     return this.getAttribute("loop-ending-time");
     // }
 
@@ -499,14 +499,16 @@ class videoplayerElement extends HTMLElement {
                 console.log("target:", newMeasure.begin);
                 console.log("current:", this.video.currentTime);
                 if (Math.abs(this.video.currentTime - newMeasure.begin) > 0.6) { // here I am working with tolarance because the video.currentTime is not accurate. Is this the best solution? The tolarance is so big because jumping to a time in the video is very slow and then behind the time of the concordance navigator
+                    // Idea: What if the time counter of the concordance navigator would only start after the video has started playing? Is it possible to sync that?
                     console.log("difference too big, syncing");
                     this.video.currentTime = newMeasure.begin;
                 }
             }
         }
-        else if (name == "target-time") {
-            if (this.video.currentTime != newValue) {
-                this.video.currentTime = newValue;
+        else if (name == "target-time-ms") {
+            let targetTimeSeconds = parseFloat(newValue) / 1000;
+            if (this.video.currentTime != targetTimeSeconds) {
+                this.video.currentTime = targetTimeSeconds;
             }
         }
         else if (name == "state") {
@@ -521,29 +523,28 @@ class videoplayerElement extends HTMLElement {
             this.adjustPlayerSize();
         }
 
-        else if (name == "loop-beginning-time") {
-            this.loopBeginningTime = newValue;
+        else if (name == "loop-beginning-time-ms") {
+            this.loopBeginningTimeSeconds = parseFloat(newValue) / 1000;
             this.adjustLoop();
         }
-        else if (name == "loop-ending-time") {
-            this.loopEndingTime = newValue;
+        else if (name == "loop-ending-time-ms") {
+            this.loopEndingTimeSeconds = parseFloat(newValue) / 1000;
             this.adjustLoop();
         }
     }
 
     checkForLoopRestrictions = () => {
         if (this.loop) {
-            if (this.video.currentTime >= this.loopEndingTime) {
-                this.video.currentTime = this.loopBeginningTime;
+            if (this.video.currentTime >= this.loopEndingTimeSeconds) {
+                this.video.currentTime = this.loopBeginningTimeSeconds;
             }
-            else if (this.video.currentTime < this.loopBeginningTime) {
-                this.video.currentTime = this.loopBeginningTime;
+            else if (this.video.currentTime < this.loopBeginningTimeSeconds) {
+                this.video.currentTime = this.loopBeginningTimeSeconds;
             }
         }
     }
 
     startInterval = (delay) => {
-        console.log("starting interval");
         if (!this.isIntervalRunning) {
             this.intervalId = setInterval(this.intervalFunction, delay);
             this.isIntervalRunning = true;
@@ -551,7 +552,6 @@ class videoplayerElement extends HTMLElement {
     }
 
     stopInterval = () => {
-        console.log("stopping interval");
         clearInterval(this.intervalId);
         this.isIntervalRunning = false;
     }
@@ -740,14 +740,11 @@ class videoplayerElement extends HTMLElement {
     }
 
     adjustLoop = () => {
-        console.log("adjusting loop ###########################");
-        console.log("BeginningTime:", this.loopBeginningTime);
-        console.log("EndingTime:", this.loopEndingTime);
         // Hier dann: Wenn z.B. Beginning nicht existiert, dann wird es auf 0 gesetzt. Wenn Ending nicht existiert, dann wird es auf das Ende des Videos gesetzt.
         // Sollte ich hier auch schon verhidnern, dass Beginning > Ending ist? Das ist gar nicht so trivial, wenn ich nämlich beide Werte ändere, wird diese Funktion zweimal aufgerufen und das kann dann falsch sein, weil die Werte ja nicht gleichzeitig geändert werden.
         const loopBeginningIndicator = this.shadow.querySelector("#loop-beginning-position-indicator");
         const loopEndingIndicator = this.shadow.querySelector("#loop-ending-position-indicator");
-        if (!Number(this.loopBeginningTime) && !Number(this.loopEndingTime)) {
+        if (!Number(this.loopBeginningTimeSeconds) && !Number(this.loopEndingTimeSeconds)) {
             // deactivate looping
             this.loop = false;
             loopBeginningIndicator.classList.add("display-none");
@@ -756,16 +753,16 @@ class videoplayerElement extends HTMLElement {
         else {
             // activate looping
             this.loop = true;
-            if (!Number(this.loopBeginningTime)) {
-                this.loopBeginningTime = 0;
+            if (!Number(this.loopBeginningTimeSeconds)) {
+                this.loopBeginningTimeSeconds = 0;
             }
-            else if (!Number(this.loopEndingTime)) {
-                this.loopEndingTime = this.video.duration;
+            else if (!Number(this.loopEndingTimeSeconds)) {
+                this.loopEndingTimeSeconds = this.video.duration;
             }
             loopBeginningIndicator.classList.remove("display-none");
             loopEndingIndicator.classList.remove("display-none");
-            loopBeginningIndicator.style.setProperty("--loop-beginning-position", this.loopBeginningTime / this.video.duration);
-            loopEndingIndicator.style.setProperty("--loop-ending-position", this.loopEndingTime / this.video.duration);
+            loopBeginningIndicator.style.setProperty("--loop-beginning-position", this.loopBeginningTimeSeconds / this.video.duration);
+            loopEndingIndicator.style.setProperty("--loop-ending-position", this.loopEndingTimeSeconds / this.video.duration);
         }
 
     }
