@@ -576,7 +576,9 @@ class videoplayerElement extends HTMLElement {
     }
 
     updateUi = () => {
-        this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
+        if (this.shadow.activeElement !== this.currentTimeElem) {
+            this.currentTimeElem.value = this.secondsToHhmmss(this.video.currentTime);
+        }
         const percent = this.video.currentTime / this.video.duration;
         this.timelineContainer.style.setProperty("--progress-position", percent);
         if (this.measuresData) {
@@ -705,6 +707,10 @@ class videoplayerElement extends HTMLElement {
     }
 
     updateMeasureForm = () => {
+        console.log(this.shadow.activeElement === this.currentMeasureElem);
+        if (this.shadow.activeElement === this.currentMeasureElem) {
+            return;
+        }
         var currentMeasure = this.getMeasureFromSeconds(this.video.currentTime);
         if (currentMeasure === false) {
             this.currentMeasureElem.value = "";
