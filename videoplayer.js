@@ -1,8 +1,8 @@
 
 console.log("Videoplayer Webcomponent loaded");
 
-const template = document.createElement("template");
-template.innerHTML = `
+let videoplayer_template = document.createElement("template");
+videoplayer_template.innerHTML = `
     <div>
         <style>
             .display-none {
@@ -279,7 +279,7 @@ class videoplayerElement extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({ mode: "open" });
-        this.shadow.append(template.content.cloneNode(true))
+        this.shadow.append(videoplayer_template.content.cloneNode(true))
         this.video = this.shadow.querySelector("video");
         this.canvas = this.shadow.querySelector('#video-canvas');
         this.ctx = this.canvas.getContext('2d');
