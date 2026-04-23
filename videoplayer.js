@@ -44,6 +44,8 @@ videoplayer_template.innerHTML = `
                 cursor: pointer;
                 display: flex;
                 align-items: center;
+                user-select: none;
+                -webkit-user-select: none;
             }
 
             #main-timeline-container.scrubbing .timeline::before,
@@ -61,6 +63,8 @@ videoplayer_template.innerHTML = `
                 height: 9px;
                 width: 100%;
                 position: relative;
+                user-select: none;
+                -webkit-user-select: none;
             }
 
             .timeline::before {
@@ -91,6 +95,8 @@ videoplayer_template.innerHTML = `
                 display: inline-block;
                 height: 300%;
                 top: -100%;
+                user-select: none;
+                -webkit-user-select: none;
             }
 
             .timeline .position-indicator-arrow {
@@ -155,6 +161,8 @@ videoplayer_template.innerHTML = `
 
             #player-controls-container #controls button {
                 cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
             }
 
             :host([state="play"]) #play-icon {
@@ -210,6 +218,8 @@ videoplayer_template.innerHTML = `
                 transform-origin: left;
                 transform: scaleX(0);
                 transition: width 150ms ease-in-out, transform 150ms ease-in-out;
+                user-select: none;
+                -webkit-user-select: none;
             }
 
             #volume-container:hover #volume-slider{
@@ -243,8 +253,24 @@ videoplayer_template.innerHTML = `
                 </div>
                 <div id="controls">
                     <button id="play-pause-btn">
-                        <img id="play-icon" src="https://www.svgrepo.com/download/522226/play.svg" height="20px" width="20px"></img>
-                        <img id="pause-icon" src="https://www.svgrepo.com/download/522219/pauze.svg" height="20px" width="20px"></img>
+                        <svg id="play-icon" width="20px" height="20px" viewBox="-1 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <title>play [#1000]</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+
+</defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dribbble-Light-Preview" transform="translate(-65.000000, -3803.000000)" fill="#000000">
+            <g id="icons" transform="translate(56.000000, 160.000000)">
+                <path d="M18.074,3650.7335 L12.308,3654.6315 C10.903,3655.5815 9,3654.5835 9,3652.8985 L9,3645.1015 C9,3643.4155 10.903,3642.4185 12.308,3643.3685 L18.074,3647.2665 C19.306,3648.0995 19.306,3649.9005 18.074,3650.7335" id="play-[#1000]">
+
+</path>
+            </g>
+        </g>
+    </g>
+</svg>
+                        <svg id="pause-icon" src="pause.svg" height="20px" width="20px"></svg>
                     </button>
                     <div id="volume-container" data-volume-level="high">
                         <button id="mute-btn">
@@ -707,7 +733,6 @@ class videoplayerElement extends HTMLElement {
     }
 
     updateMeasureForm = () => {
-        console.log(this.shadow.activeElement === this.currentMeasureElem);
         if (this.shadow.activeElement === this.currentMeasureElem) {
             return;
         }
